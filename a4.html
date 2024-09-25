@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簡單像素賽車遊戲</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #gameArea {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            background-color: #000;
+            overflow: hidden;
+            border: 2px solid #fff;
+        }
+
+        .car {
+            position: absolute;
+            bottom: 10px;
+            left: 180px;
+            width: 40px;
+            height: 80px;
+            background-color: red;
+        }
+
+        .obstacle {
+            position: absolute;
+            width: 40px;
+            height: 80px;
+            background-color: blue;
+        }
+
+        .score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameArea">
+        <div class="car" id="car"></div>
+        <div class="score" id="score">分數: 0</div>
+    </div>
+
+    <script>
+        const gameArea = document.getElementById('gameArea');
+        const car = document.getElementById('car');
+        const scoreDisplay = document.getElementById('score');
+        let score = 0;
+        let gameSpeed = 5;
+        let isGameOver = false;
+
+        // 生成障礙物
+        function createObstacle() {
+            const obstacle = document.createElement('div');
+            obstacle.classList.add('obstacle');
+            obstacle.style.top = '0px';
+            obstacle.style.left = Math.floor(Math.random() * (gameArea.offsetWidth - 40)) + 'px';
+            gameArea.appendChild(obstacle);
+        }
+
+        // 更新遊戲畫面
+        function updateGame() {
+            if (isGameOver) return;
+
+            score++;
+            scoreDisplay.textContent = `分數: ${score}`;
+
+            const obstacles = document.querySelectorAll('.obstacle');
+            obstacles.forEach(obstacle => {
+                const obstacleTop = parseInt(obstacle.style.top);
+                if (obstacleTop >= gameArea.offsetHeight) {
+                    obstacle.remove();
+                } else {
+                    obstacle.style.top = obstacleTop + gameSpeed + 'px';
+                }
+
+                // 檢查車子是否碰到障礙物
+                const carRect = car.getBoundingClientRect();
+                const obstacleRect = obstacle.getBoundingClientRect();
+                if (carRect.left < obstacleRect.left + obstacleRect.width &&
+                    carRect.left + carRect.width > obstacleRect.left &&
+                    carRect.top < obstacleRect.top + obstacleRect.height &&
+                    carRect.top + carRect.height > obstacleRect.top) {
+                    isGameOver = true;
+                    alert('遊戲結束！你的分數是: ' + score);
+                    location.reload();
+                }
+            });
+
+            // 每隔一段時間生成新的障礙物
+            if (score % 100 === 0) {
+                createObstacle();
+            }
+
+            requestAnimationFrame(updateGame);
+        }
+
+        // 讓車子左右移動
+        document.addEventListener('keydown', (event) => {
+            const carLeft = parseInt(window.getComputedStyle(car).getPropertyValue('left'));
+            if (event.key === 'ArrowLeft' && carLeft > 0) {
+                car.style.left = carLeft - 40 + 'px';
+            }
+            if (event.key === 'ArrowRight' && carLeft < (gameArea.offsetWidth - car.offsetWidth)) {
+                car.style.left = carLeft + 40 + 'px';
+            }
+        });
+
+        // 開始遊戲
+        createObstacle();
+        updateGame();
+    </script>
+</body>
+</html>
